@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OrderBot Setup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--border:#30363d;
+  --text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;
+  --green:#3fb950;--orange:#d29922;--red:#f85149;
+  --radius:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px 16px}
+.wrap{max-width:700px;margin:0 auto}
+
+/* header */
+.hdr{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.hdr-logo{width:48px;height:48px;border-radius:12px;background:#1f6feb;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.hdr h1{font-size:22px;font-weight:700;color:var(--text)}
+.hdr p{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* steps */
+.steps{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.step-btn{flex:1;padding:10px 6px;font-size:12px;font-weight:600;background:var(--surface);color:var(--muted);border:none;cursor:pointer;border-right:1px solid var(--border);transition:all .15s;text-align:center}
+.step-btn:last-child{border-right:none}
+.step-btn.on{background:#1f6feb22;color:var(--blue)}
+.step-btn.done{color:var(--green)}
+
+/* panels */
+.panel{display:none}.panel.on{display:block}
+
+/* card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+
+/* inputs */
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;margin-top:12px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;background:#0d1117;border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;padding:8px 10px;outline:none;transition:border .15s}
+input:focus,select:focus{border-color:var(--blue)}
+input::placeholder{color:#484f58}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* currency grid */
+.curr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.curr-opt{border:1px solid var(--border);border-radius:var(--radius);padding:8px;cursor:pointer;text-align:center;background:var(--bg);transition:all .15s}
+.curr-opt:hover{border-color:#58a6ff66}
+.curr-opt.on{border-color:var(--blue);background:#1f6feb18}
+.curr-opt .flag{font-size:18px}
+.curr-opt .cname{font-size:11px;font-weight:600;color:var(--text);margin-top:3px}
+.curr-opt .ccode{font-size:10px;color:var(--muted)}
+.curr-opt .csym{font-size:11px;color:var(--blue);font-weight:700;margin-top:1px}
+
+/* products */
+.prod-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.prod-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px}
+.prod-name{flex:1;font-size:13px;color:var(--text)}
+.prod-price{font-size:12px;color:var(--blue);min-width:50px;text-align:right}
+.prod-stock{font-size:11px;color:var(--muted);min-width:48px;text-align:right}
+.prod-del{color:var(--red);cursor:pointer;font-size:18px;line-height:1;padding:0 2px;flex-shrink:0}
+.add-row{display:flex;gap:6px;flex-wrap:wrap}
+.add-row input{flex:1;min-width:80px}
+.add-row input.small{max-width:90px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-blue{background:#1f6feb;color:#fff}
+.btn-blue:hover{background:#388bfd}
+.btn-ghost{background:transparent;color:var(--blue);border:1px solid var(--border)}
+.btn-ghost:hover{background:#1f6feb18}
+.btn-row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap}
+
+/* secret box */
+.secret-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;margin-bottom:8px}
+.secret-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.secret-row:last-child{margin-bottom:0}
+.skey{color:var(--orange);min-width:90px;font-weight:600}
+.sval{color:var(--green);word-break:break-all;flex:1}
+.scopy{cursor:pointer;font-size:10px;color:var(--blue);background:#1f6feb22;border:none;border-radius:4px;padding:3px 8px;white-space:nowrap;transition:background .15s}
+.scopy:hover{background:#1f6feb44}
+
+/* step instructions */
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0}
+.step-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center}
+.step-desc{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+.step-desc code{background:#21262d;color:var(--orange);padding:1px 5px;border-radius:3px;font-size:11px}
+.step-img{border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;background:var(--bg);font-family:monospace;font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.8}
+.step-img .hl{color:var(--text)}
+.step-img .gr{color:var(--green)}
+.step-img .or{color:var(--orange)}
+
+/* success */
+.success-banner{background:#1a3025;border:1px solid #2ea04340;border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:20px}
+.success-banner .icon{font-size:32px;margin-bottom:8px}
+.success-banner h2{font-size:18px;font-weight:700;color:var(--green);margin-bottom:4px}
+.success-banner p{font-size:13px;color:var(--muted)}
+
+/* badge */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#1f6feb22;color:var(--blue);margin-left:8px;vertical-align:middle}
+.badge.grn{background:#1a3025;color:var(--green)}
+
+/* progress dots */
+.dots{display:flex;gap:6px;margin-bottom:24px;justify-content:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s}
+.dot.on{background:var(--blue)}
+.dot.done{background:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-logo">🤖</div>
+    <div>
+      <h1>OrderBot Setup</h1>
+      <p>Configure your Telegram order bot — takes about 3 minutes</p>
+    </div>
+  </div>
+
+  <div class="steps" id="step-tabs">
+    <button class="step-btn on"  onclick="goStep(0)">1 · Bot Info</button>
+    <button class="step-btn"     onclick="goStep(1)">2 · Shop Info</button>
+    <button class="step-btn"     onclick="goStep(2)">3 · Products</button>
+    <button class="step-btn"     onclick="goStep(3)">4 · Deploy</button>
+  </div>
+
+  <!-- ══ STEP 1: Bot Info ══ -->
+  <div class="panel on" id="panel-0">
+    <div class="card">
+      <div class="card-title">🔑 Bot Token & Owner IDs</div>
+      <div class="card-sub">Get your bot token from <strong>@BotFather</strong> on Telegram. Your Telegram ID from <strong>@userinfobot</strong>.</div>
+
+      <label>Bot Token</label>
+      <input id="bot-token" type="password" placeholder="1234567890:ABCdef...  (from @BotFather)">
+      <div class="hint">Message @BotFather → /newbot → copy the token</div>
+
+      <label>Owner Telegram ID(s)</label>
+      <input id="owner-ids" placeholder="123456789  or  123456789,987654321">
+      <div class="hint">Get your ID by messaging @userinfobot · Separate multiple IDs with commas</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌍 Currency</div>
+      <div class="curr-grid" id="curr-grid">
+        <div class="curr-opt on" data-sym="RM"  data-code="MYR" onclick="pickCurr(this)">
+          <div class="flag">🇲🇾</div><div class="cname">Ringgit</div><div class="ccode">MYR</div><div class="csym">RM</div>
+        </div>
+        <div class="curr-opt" data-sym="K"   data-code="MMK" onclick="pickCurr(this)">
+          <div class="flag">🇲🇲</div><div class="cname">Kyat</div><div class="ccode">MMK</div><div class="csym">K</div>
+        </div>
+        <div class="curr-opt" data-sym="¥"   data-code="CNY" onclick="pickCurr(this)">
+          <div class="flag">🇨🇳</div><div class="cname">Yuan</div><div class="ccode">CNY</div><div class="csym">¥</div>
+        </div>
+        <div class="curr-opt" data-sym="฿"   data-code="THB" onclick="pickCurr(this)">
+          <div class="flag">🇹🇭</div><div class="cname">Baht</div><div class="ccode">THB</div><div class="csym">฿</div>
+        </div>
+        <div class="curr-opt" data-sym="S$"  data-code="SGD" onclick="pickCurr(this)">
+          <div class="flag">🇸🇬</div><div class="cname">S. Dollar</div><div class="ccode">SGD</div><div class="csym">S$</div>
+        </div>
+        <div class="curr-opt" data-sym="Rp"  data-code="IDR" onclick="pickCurr(this)">
+          <div class="flag">🇮🇩</div><div class="cname">Rupiah</div><div class="ccode">IDR</div><div class="csym">Rp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <span></span>
+      <button class="btn btn-blue" onclick="goStep(1)">Next: Shop Info →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2: Shop Info ══ -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">🏪 Shop Details</div>
+      <div class="card-sub">Shown on receipts sent to customers and owners.</div>
+
+      <label>Shop Name</label>
+      <input id="shop-name" placeholder="Kedai Maju">
+
+      <label>Shop Address <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+      <input id="shop-addr" placeholder="No 7, Jalan Makmur, Kuala Lumpur">
+
+      <label>Shop Phone <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+      <input id="shop-phone" placeholder="+60123456789">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(0)">← Back</button>
+      <button class="btn btn-blue"  onclick="goStep(2)">Next: Products →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3: Products ══ -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="card-title">📦 Initial Products</div>
+      <div class="card-sub">Add your products here. You can also add / update them later directly in the bot chat via <code style="background:#21262d;color:#d29922;padding:1px 5px;border-radius:3px;font-size:11px">/addproduct</code></div>
+
+      <div class="prod-list" id="prod-list"></div>
+
+      <div class="add-row">
+        <input id="p-name"  placeholder="Product name" style="flex:2">
+        <input id="p-price" placeholder="Price e.g. 8.00" class="small" type="number" min="0" step="0.01">
+        <input id="p-stock" placeholder="Stock" class="small" type="number" min="0" value="99">
+        <button class="btn btn-primary" onclick="addProduct()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-blue"  onclick="goStep(3)">Next: Deploy →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 4: Deploy ══ -->
+  <div class="panel" id="panel-3">
+    <div class="success-banner">
+      <div class="icon">🚀</div>
+      <h2>Almost there!</h2>
+      <p>Follow the 4 steps below — takes about 5 minutes total.</p>
+    </div>
+
+    <!-- Step A -->
+    <div class="step-card">
+      <div class="step-title"><span class="step-num">1</span>Push the bot files to GitHub</div>
+      <div class="step-desc">
+        Create a <strong>new GitHub repository</strong> (public or private — both work).<br>
+        Upload all the bot files into it: <code>bot.js</code>, <code>receipt.js</code>, <code>package.json</code>, and the <code>.github/workflows/bot.yml</code> folder.
+        <div class="step-img">
+          📁 your-repo/<br>
+          <span class="hl">├── bot.js</span><br>
+          <span class="hl">├── receipt.js</span><br>
+          <span class="hl">├── package.json</span><br>
+          <span class="hl">└── .github/workflows/bot.yml</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step B -->
+    <div class="step-card">
+      <div class="step-title"><span class="step-num">2</span>Add these Secrets to your GitHub repo</div>
+      <div class="step-desc">
+        Go to your repo → <code>Settings</code> → <code>Secrets and variables</code> → <code>Actions</code> → click <strong>New repository secret</strong> for each row below:
+      </div>
+      <div class="secret-box" id="secret-box">
+        <div class="secret-row">
+          <span class="skey">BOT_TOKEN</span>
+          <span class="sval" id="sv-token">—</span>
+          <button class="scopy" onclick="copySecret('sv-token')">Copy</button>
+        </div>
+        <div class="secret-row">
+          <span class="skey">OWNER_IDS</span>
+          <span class="sval" id="sv-owners">—</span>
+          <button class="scopy" onclick="copySecret('sv-owners')">Copy</button>
+        </div>
+        <div class="secret-row">
+          <span class="skey">SHOP_NAME</span>
+          <span class="sval" id="sv-shopname">—</span>
+          <button class="scopy" onclick="copySecret('sv-shopname')">Copy</button>
+        </div>
+        <div class="secret-row">
+          <span class="skey">SHOP_ADDR</span>
+          <span class="sval" id="sv-shopaddr">—</span>
+          <button class="scopy" onclick="copySecret('sv-shopaddr')">Copy</button>
+        </div>
+        <div class="secret-row">
+          <span class="skey">SHOP_PHONE</span>
+          <span class="sval" id="sv-shopphone">—</span>
+          <button class="scopy" onclick="copySecret('sv-shopphone')">Copy</button>
+        </div>
+        <div class="secret-row">
+          <span class="skey">CURRENCY</span>
+          <span class="sval" id="sv-currency">—</span>
+          <button class="scopy" onclick="copySecret('sv-currency')">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step C -->
+    <div class="step-card">
+      <div class="step-title"><span class="step-num">3</span>Start the bot for the first time</div>
+      <div class="step-desc">
+        Go to your repo → <code>Actions</code> tab → click <strong>OrderBot — Always On</strong> → click <strong>Run workflow</strong> → click the green <strong>Run workflow</strong> button.<br><br>
+        The bot will start within 30 seconds. After that it restarts automatically every 5 hours — you don't need to do anything.
+      </div>
+    </div>
+
+    <!-- Step D -->
+    <div class="step-card">
+      <div class="step-title"><span class="step-num">4</span>Add your first products</div>
+      <div class="step-desc">
+        Open Telegram and message your bot. Since you're an owner, you'll get the owner keyboard. Tap <strong>📦 Products</strong> then send commands like:<br><br>
+        <code>/addproduct Nasi Lemak|8.00|25</code><br>
+        <code>/addproduct Teh Tarik|3.50|50</code><br><br>
+        That's it! Your customers can now message the bot and place orders.
+      </div>
+    </div>
+
+    <!-- products data file note -->
+    <div id="products-note" style="display:none" class="step-card">
+      <div class="step-title">📦 Products you entered <span class="badge grn">Ready</span></div>
+      <div class="step-desc">
+        These are saved in <code>data.json</code> — upload this file to your GitHub repo too so the bot starts with your products pre-loaded. You can also add them via bot commands after starting.
+        <div id="products-preview" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var state = {
+  step:      0,
+  currency:  { sym: 'RM', code: 'MYR' },
+  products:  [],
+  prodId:    1,
+};
+
+// ── navigation ────────────────────────────────
+function goStep(n) {
+  state.step = n;
+  document.querySelectorAll('.panel').forEach((p,i)     => p.classList.toggle('on', i===n));
+  document.querySelectorAll('.step-btn').forEach((b,i)  => {
+    b.classList.remove('on','done');
+    if (i < n)  b.classList.add('done');
+    if (i === n) b.classList.add('on');
+  });
+  if (n === 3) refreshDeploy();
+}
+
+// ── currency ──────────────────────────────────
+function pickCurr(el) {
+  document.querySelectorAll('.curr-opt').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  state.currency = { sym: el.dataset.sym, code: el.dataset.code };
+}
+
+// ── products ──────────────────────────────────
+function addProduct() {
+  var name  = document.getElementById('p-name').value.trim();
+  var price = parseFloat(document.getElementById('p-price').value) || 0;
+  var stock = parseInt(document.getElementById('p-stock').value)   || 99;
+  if (!name) return;
+  state.products.push({ id: state.prodId++, name, price, stock, active: true });
+  document.getElementById('p-name').value  = '';
+  document.getElementById('p-price').value = '';
+  document.getElementById('p-stock').value = '99';
+  renderProducts();
+}
+
+function removeProduct(id) {
+  state.products = state.products.filter(p => p.id !== id);
+  renderProducts();
+}
+
+function renderProducts() {
+  var list = document.getElementById('prod-list');
+  if (!state.products.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0">No products added yet. Add some above.</div>';
+    return;
+  }
+  list.innerHTML = state.products.map(p =>
+    `<div class="prod-row">
+      <span class="prod-name">${esc(p.name)}</span>
+      <span class="prod-price">${state.currency.sym}${p.price.toFixed(2)}</span>
+      <span class="prod-stock">Stock: ${p.stock}</span>
+      <span class="prod-del" onclick="removeProduct(${p.id})">×</span>
+    </div>`
+  ).join('');
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── deploy page ───────────────────────────────
+function refreshDeploy() {
+  var token  = document.getElementById('bot-token').value.trim();
+  var owners = document.getElementById('owner-ids').value.trim();
+  var name   = document.getElementById('shop-name').value.trim()  || 'My Shop';
+  var addr   = document.getElementById('shop-addr').value.trim()  || '';
+  var phone  = document.getElementById('shop-phone').value.trim() || '';
+
+  setText('sv-token',    token   || '— enter bot token in Step 1');
+  setText('sv-owners',   owners  || '— enter owner IDs in Step 1');
+  setText('sv-shopname', name);
+  setText('sv-shopaddr', addr    || '(leave blank to skip)');
+  setText('sv-shopphone',phone   || '(leave blank to skip)');
+  setText('sv-currency', state.currency.code);
+
+  // products
+  var pNote = document.getElementById('products-note');
+  var pPrev = document.getElementById('products-preview');
+  if (state.products.length) {
+    pNote.style.display = 'block';
+    pPrev.innerHTML = state.products.map(p =>
+      `<div style="font-size:11.5px;color:var(--muted);margin-bottom:3px">
+        🟢 <span style="color:var(--text)">${esc(p.name)}</span>  ${state.currency.sym}${p.price.toFixed(2)}  · Stock: ${p.stock}
+      </div>`
+    ).join('');
+  } else {
+    pNote.style.display = 'none';
+  }
+}
+
+function setText(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+function copySecret(id) {
+  var txt = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    var btn = document.querySelector(`[onclick="copySecret('${id}')"]`);
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = '#3fb950';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+renderProducts();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "orderbot",
+  "version": "1.0.0",
+  "description": "Telegram order management bot with PDF thermal receipt",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0",
+    "pdfkit": "^0.15.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

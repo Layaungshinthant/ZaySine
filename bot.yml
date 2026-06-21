@@ -1,0 +1,52 @@
+name: OrderBot — Always On
+
+on:
+  schedule:
+    # Restart every 5 hours (GitHub Actions job limit is 6h)
+    - cron: '0 */5 * * *'
+  workflow_dispatch:   # allow manual start from GitHub Actions tab
+
+jobs:
+  run-bot:
+    name: Run OrderBot
+    runs-on: ubuntu-latest
+    timeout-minutes: 300   # 5 hours
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Restore saved data
+        uses: actions/cache@v4
+        with:
+          path: data.json
+          key: orderbot-data-${{ github.run_number }}
+          restore-keys: |
+            orderbot-data-
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run bot (5 hours then auto-restart)
+        env:
+          BOT_TOKEN:  ${{ secrets.BOT_TOKEN }}
+          OWNER_IDS:  ${{ secrets.OWNER_IDS }}
+          SHOP_NAME:  ${{ secrets.SHOP_NAME }}
+          SHOP_ADDR:  ${{ secrets.SHOP_ADDR }}
+          SHOP_PHONE: ${{ secrets.SHOP_PHONE }}
+          CURRENCY:   ${{ secrets.CURRENCY }}
+        # Run for 17 900 seconds (≈ 4h 58m) then exit cleanly so cache saves
+        run: timeout 17900 node bot.js || true
+
+      - name: Save data cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data.json
+          key: orderbot-data-${{ github.run_number }}
